@@ -1,7 +1,7 @@
-import 'package:todolist/domain/entities/user.dart';
+import 'package:todolist/domain/entities/user_app.dart';
 
 class UserModel {
-  String id;
+  /* String id;
   String email;
   String username;
   final bool isLoggedIn;
@@ -46,6 +46,20 @@ class UserModel {
       email: user.email,
       username: user.username,
       isLoggedIn: user.isLoggedIn,
+    );
+  } */
+
+  final String id;
+  final String email;
+  final String displayName;
+
+  UserModel({required this.id, required this.email, required this.displayName});
+
+  UserModel map(UserApp firebaseUser) {
+    return UserModel(
+      id: firebaseUser.uid,
+      email: firebaseUser.email,
+      displayName: firebaseUser.displayName ?? '',
     );
   }
 }

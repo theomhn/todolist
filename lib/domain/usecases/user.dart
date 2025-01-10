@@ -20,3 +20,5 @@ class LogoutUser {
   LogoutUser(this.repository);
   Future<void> call() => repository.logout();
 }
+
+

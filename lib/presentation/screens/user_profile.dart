@@ -82,7 +82,7 @@ class UserProfile extends StatelessWidget {
                           Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => LoginPage()),
+                                  builder: (context) => LoginScreen()),
                               (route) => false);
                         },
                         child: Text(
