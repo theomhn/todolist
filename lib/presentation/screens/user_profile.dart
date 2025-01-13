@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:todolist/presentation/providers/auth_provider.dart';
 import 'package:todolist/presentation/providers/create_todo_provider.dart';
-import 'package:todolist/presentation/providers/user_profider.dart';
 import 'package:todolist/presentation/screens/login.dart';
 import 'package:todolist/theme_color.dart';
 
@@ -10,6 +10,13 @@ class UserProfile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final user = authProvider.user;
+
+    if (user == null) {
+      return LoginScreen();
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Page de profil'),
@@ -38,11 +45,11 @@ class UserProfile extends StatelessWidget {
               children: <Widget>[
                 const Icon(Icons.account_circle, size: 100),
                 Text(
-                  context.watch<UserProvider>().currentUser!.username,
+                  user.name,
                   style: const TextStyle(
                       fontSize: 30, fontWeight: FontWeight.bold),
                 ),
-                Text(context.watch<UserProvider>().currentUser!.email),
+                Text(user.email),
                 Padding(
                     padding: const EdgeInsets.only(top: 20),
                     child: Row(
@@ -78,7 +85,7 @@ class UserProfile extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 20),
                     child: ElevatedButton(
                         onPressed: () {
-                          context.read<UserProvider>().logoutUser();
+                          authProvider.signOut();
                           Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(

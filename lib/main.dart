@@ -1,28 +1,47 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-/* import 'package:todolist/data/repositories/user_repository_impl.dart';
+import 'package:todolist/data/datasources/firebase_auth_service.dart';
+import 'package:todolist/data/repositories/auth_repository_impl.dart';
+import 'package:todolist/domain/mappers/firebase_to_user_model_mapper.dart';
+import 'package:todolist/domain/mappers/user_model_to_user_mapper.dart';
 import 'package:todolist/domain/usecases/user.dart';
-import 'package:todolist/presentation/providers/user_profider.dart'; */
+import 'package:todolist/presentation/providers/auth_provider.dart';
 import 'package:todolist/presentation/screens/login.dart';
 import 'package:todolist/presentation/screens/todo.dart';
 
 import './theme_color.dart';
+import 'firebase_options.dart';
 import 'presentation/providers/create_todo_provider.dart';
 import 'presentation/screens/user_profile.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  /* final userRepository = UserRepositoryImpl(); */
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Initialisation des dépendances
+  final firebaseAuthService = FirebaseAuthService();
+  final firebaseToUserModelMapper = FirebaseToUserModelMapper();
+  final userModelToUserMapper = UserModelToUserMapper();
+
+  final authRepository = AuthRepositoryImpl(
+    firebaseAuthService,
+    firebaseToUserModelMapper,
+  );
+
+  final signInWithEmail = SignInWithEmail(
+    authRepository,
+    userModelToUserMapper,
+  );
+
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (context) => CreateTodoProvider()),
-    /* ChangeNotifierProvider(
-      create: (_) => UserProvider(
-          getUser: GetUser(userRepository),
-          loginUser: LoginUser(userRepository),
-          logoutUser: LogoutUser(userRepository)),
-    ), */
+    ChangeNotifierProvider(
+      create: (context) => AuthProvider(signInWithEmail),
+    ),
   ], child: const MyApp()));
 }
 

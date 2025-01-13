@@ -33,8 +33,10 @@ class LoginScreen extends StatelessWidget {
                   await authProvider.signIn(
                       _emailController.text, _passwordController.text);
                   if (authProvider.user != null) {
+                    // ignore: use_build_context_synchronously
                     Navigator.pushReplacementNamed(context, "/home");
                   } else {
+                    // ignore: use_build_context_synchronously
                     ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("Login failed")));
                   }
