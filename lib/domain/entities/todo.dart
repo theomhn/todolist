@@ -1,8 +1,11 @@
 class Todo {
-  String text;
+  final String? id;
+  final String text;
   bool isDone;
 
-  Todo({required this.text, this.isDone = false});
+  Todo({
+    this.id,
+    required this.text,
+    this.isDone = false,
+  });
 }
-
-List<Todo> todoList = [];

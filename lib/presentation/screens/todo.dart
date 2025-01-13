@@ -1,8 +1,8 @@
-// lib/presentation/screens/todo_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../domain/entities/todo.dart';
-import '../providers/create_todo_provider.dart';
+import 'package:todolist/domain/entities/todo.dart';
+import 'package:todolist/presentation/providers/create_todo_provider.dart';
+
 import '../../theme_color.dart';
 
 class TodoScreen extends StatefulWidget {
@@ -15,6 +15,12 @@ class TodoScreen extends StatefulWidget {
 class _TodoScreenState extends State<TodoScreen> {
   final TextEditingController _todoController = TextEditingController();
 
+  @override
+  void dispose() {
+    _todoController.dispose();
+    super.dispose();
+  }
+
   void _addTodo() {
     showDialog(
       context: context,
@@ -24,30 +30,37 @@ class _TodoScreenState extends State<TodoScreen> {
           content: TextField(
             controller: _todoController,
             decoration: const InputDecoration(hintText: 'Entrer votre todo'),
+            onSubmitted: (_) => _submitTodo(context),
           ),
           actions: <Widget>[
             TextButton(
               child: const Text('Annuler'),
               onPressed: () {
+                _todoController.clear();
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Add'),
-              onPressed: () {
-                Provider.of<CreateTodoProvider>(context, listen: false).add(
-                  Todo(
-                    text: _todoController.text,
-                  ),
-                );
-                _todoController.clear();
-                Navigator.of(context).pop();
-              },
+              child: const Text('Ajouter'),
+              onPressed: () => _submitTodo(context),
             ),
           ],
         );
       },
     );
+  }
+
+  void _submitTodo(BuildContext context) {
+    if (_todoController.text.trim().isNotEmpty) {
+      final todo = Todo(
+        text: _todoController.text.trim(),
+      );
+
+      context.read<CreateTodoProvider>().add(todo);
+
+      _todoController.clear();
+      Navigator.of(context).pop();
+    }
   }
 
   @override
@@ -73,36 +86,60 @@ class _TodoScreenState extends State<TodoScreen> {
             borderRadius: BorderRadius.circular(15),
           ),
           height: 600,
-          child: ListView.builder(
-            itemCount: context.watch<CreateTodoProvider>().todoList.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                leading: Checkbox(
-                  value: context
-                      .watch<CreateTodoProvider>()
-                      .todoList[index]
-                      .isDone,
-                  onChanged: (bool? value) {
-                    context.read<CreateTodoProvider>().toggle(index);
-                  },
-                ),
-                title: Text(
-                  context.watch<CreateTodoProvider>().todoList[index].text,
-                  style: TextStyle(
-                    decoration: context
-                            .watch<CreateTodoProvider>()
-                            .todoList[index]
-                            .isDone
-                        ? TextDecoration.lineThrough
-                        : null,
+          child: Consumer<CreateTodoProvider>(
+            builder: (context, todoProvider, child) {
+              final todos = todoProvider.todoList;
+
+              if (todos.isEmpty) {
+                return const Center(
+                  child: Text(
+                    'Aucune tâche pour le moment',
+                    style: TextStyle(fontSize: 16),
                   ),
-                ),
-                trailing: IconButton(
-                  icon: Icon(Icons.delete, color: themeColor['red']),
-                  onPressed: () {
-                    context.read<CreateTodoProvider>().remove(index);
-                  },
-                ),
+                );
+              }
+
+              return ListView.builder(
+                itemCount: todos.length,
+                itemBuilder: (context, index) {
+                  final todo = todos[index];
+                  return Card(
+                    elevation: 2,
+                    margin: const EdgeInsets.symmetric(
+                      vertical: 4,
+                      horizontal: 8,
+                    ),
+                    child: ListTile(
+                      leading: Checkbox(
+                        value: todo.isDone,
+                        activeColor: themeColor['primary'],
+                        onChanged: (bool? value) {
+                          if (todo.id != null && value != null) {
+                            todoProvider.toggle(todo.id!, value);
+                          }
+                        },
+                      ),
+                      title: Text(
+                        todo.text,
+                        style: TextStyle(
+                          decoration:
+                              todo.isDone ? TextDecoration.lineThrough : null,
+                        ),
+                      ),
+                      trailing: IconButton(
+                        icon: Icon(
+                          Icons.delete,
+                          color: themeColor['red'],
+                        ),
+                        onPressed: () {
+                          if (todo.id != null) {
+                            todoProvider.remove(todo.id!);
+                          }
+                        },
+                      ),
+                    ),
+                  );
+                },
               );
             },
           ),
@@ -111,7 +148,7 @@ class _TodoScreenState extends State<TodoScreen> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: themeColor['primary'],
         onPressed: _addTodo,
-        tooltip: 'add todo',
+        tooltip: 'Ajouter une tâche',
         child: const Icon(Icons.add),
       ),
     );

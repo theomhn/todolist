@@ -1,24 +1,50 @@
-import 'package:flutter/material.dart';
-
-import '../../domain/entities/todo.dart';
+import 'package:flutter/foundation.dart';
+import 'package:todolist/domain/entities/todo.dart';
+import 'package:todolist/domain/repositories/todo_repository.dart';
 
 class CreateTodoProvider with ChangeNotifier {
-  final List<Todo> _todoList = [];
+  final TodoRepository _repository;
+  List<Todo> _todoList = [];
+
+  CreateTodoProvider(this._repository) {
+    _loadTodos();
+  }
 
   List<Todo> get todoList => _todoList;
 
-  void add(Todo todo) {
-    _todoList.add(todo);
-    notifyListeners();
+  Future<void> _loadTodos() async {
+    try {
+      _todoList = await _repository.getTodos();
+      notifyListeners();
+    } catch (e) {
+      print('Error loading todos: $e');
+    }
   }
 
-  void remove(int index) {
-    _todoList.removeAt(index);
-    notifyListeners();
+  Future<void> add(Todo todo) async {
+    try {
+      await _repository.addTodo(todo);
+      await _loadTodos();
+    } catch (e) {
+      print('Error adding todo: $e');
+    }
   }
 
-  void toggle(int index) {
-    _todoList[index].isDone = !_todoList[index].isDone;
-    notifyListeners();
+  Future<void> remove(String id) async {
+    try {
+      await _repository.deleteTodo(id);
+      await _loadTodos();
+    } catch (e) {
+      print('Error removing todo: $e');
+    }
+  }
+
+  Future<void> toggle(String id, bool newValue) async {
+    try {
+      await _repository.toggleTodo(id, newValue);
+      await _loadTodos();
+    } catch (e) {
+      print('Error toggling todo: $e');
+    }
   }
 }
